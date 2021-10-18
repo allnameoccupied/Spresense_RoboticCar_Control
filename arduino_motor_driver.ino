@@ -72,6 +72,7 @@ void loop() {
     delay(1000);
     motor_controller->demo(1500,MAX_SPEED/3);
     delay(3000);
+    //test
 
     LED_toggle();
 }
