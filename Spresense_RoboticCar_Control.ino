@@ -38,6 +38,8 @@ void setup() {
     LED_init_max();
     PIN_init_max(PWM_pins);
     PIN_init_max(DIR_pins);
+
+    //init custom controller & program variables
     motor_controller = new MotorControllerM(TOP_LEFT_AHEAD, TOP_LEFT_BACK, TOP_LEFT_PWM,
                                             TOP_RIGHT_AHEAD, TOP_RIGHT_BACK, TOP_RIGHT_PWM,
                                             BOTTOM_LEFT_AHEAD, BOTTOM_LEFT_BACK, BOTTOM_LEFT_PWM,
@@ -52,30 +54,13 @@ void setup() {
 }
 
 void loop() {
-    LED_toggle();
-    
-
     //demo motor function
-    // motor_controller->demo(1500);
-    // top_left_motor->setDirSpd(true,MAX_SPEED);
-    // top_right_motor->setDirSpd(true,MAX_SPEED);
-    // bottom_left_motor->setDirSpd(true,MAX_SPEED);
-    // bottom_right_motor->setDirSpd(true,MAX_SPEED);
-    // delay(500);
-    // top_left_motor->setSpd(MIN_SPEED);
-    // top_right_motor->setSpd(MIN_SPEED);
-    // bottom_left_motor->setSpd(MIN_SPEED);
-    // bottom_right_motor->setSpd(MIN_SPEED);
-    // delay(3000);
-    // motor_controller->move_ahead();
     motor_controller->demo(1500,MAX_SPEED);
     delay(1000);
     motor_controller->demo(1500,MAX_SPEED/3);
     delay(3000);
-    //test
-    //asdfasdf
-    // sadfa
 
+    //blinks LED to show that system is not hanging
     LED_toggle();
 }
 
@@ -88,14 +73,12 @@ void LED_toggle(){
     {
         digitalWrite(LED0, HIGH);
         digitalWrite(LED1, LOW);
-        delay(100);
         led_toggle_state = false;
     }
     else
     {
         digitalWrite(LED0, LOW);
         digitalWrite(LED1, HIGH);
-        delay(100);
         led_toggle_state = true;
     }
 }
