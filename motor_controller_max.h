@@ -7,7 +7,7 @@
 #define MAX_SPEED 255
 #define MIN_SPEED 0
 
-class MotorControllerM{
+class MotorController{
     private:
     MotorM* top_left_motor;
     MotorM* top_right_motor;
