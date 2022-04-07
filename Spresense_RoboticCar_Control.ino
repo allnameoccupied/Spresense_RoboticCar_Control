@@ -1,9 +1,10 @@
 //functions and classes by Max
-#include "board_init_max.h"
-#include "motor_max.h"
-#include "motor_controller_max.h"
-#include "util_max.h"
+#include "Board_init.h"
+#include "LED.h"
+#include "Motor.h"
+#include "Motor_controller.h"
 //for camera, tft LCD, SD card
+#include <Arduino.h>
 #include <Camera.h>
 #include <SPI.h>
 #include <SDHCI.h>
@@ -16,35 +17,39 @@
 
 #define from_MAX 12345
 
-//base definition of program behaviour
-#define IS_USE_MOTOR true       //use motor == not use tft_LCD
+//Base definition of program behaviour
+#define IS_USE_MOTOR        true       //use motor == not use tft_LCD
 
 //PWM pin DEFINE
 #define TOP_LEFT_PWM        PIN_D03
 #define TOP_RIGHT_PWM       PIN_D05
-#define BOTTOM_LEFT_PWM     PIN_D06
-#define BOTTOM_RIGHT_PWM    PIN_D09
+#define BOT_LEFT_PWM        PIN_D06
+#define BOT_RIGHT_PWM       PIN_D09
 static const uint8_t PWM_pins[4] = {PIN_D06, PIN_D05, PIN_D09, PIN_D03};    //order of pin according to CXD5602 pwm pin order
 
-//direction control pin DEFINE
+//Direction pin DEFINE
+//Currently using same pins for TOP & BOTTOM motors (7-4-2022)
+//If use NOT gate, 2 more pins can be saved (7-4-2022)
 #define TOP_LEFT_AHEAD      PIN_D02
 #define TOP_LEFT_BACK       PIN_D04
 #define TOP_RIGHT_AHEAD     PIN_D07
 #define TOP_RIGHT_BACK      PIN_D08
-#define BOTTOM_LEFT_AHEAD   PIN_D10
-#define BOTTOM_LEFT_BACK    PIN_D11
-#define BOTTOM_RIGHT_AHEAD  PIN_D12
-#define BOTTOM_RIGHT_BACK   PIN_D13
-static const uint8_t DIR_pins[8] = {PIN_D02, PIN_D04, PIN_D07, PIN_D08, PIN_D10, PIN_D11, PIN_D12, PIN_D13};
+#define BOT_LEFT_AHEAD      TOP_LEFT_AHEAD //PIN_D10
+#define BOT_LEFT_BACK       TOP_LEFT_BACK //PIN_D11
+#define BOT_RIGHT_AHEAD     TOP_RIGHT_AHEAD //PIN_D12
+#define BOT_RIGHT_BACK      TOP_RIGHT_BACK //PIN_D13
+static const uint8_t DIR_pins[4] = {PIN_D02, PIN_D04, PIN_D07, PIN_D08};
+// static const uint8_t DIR_pins[8] = {PIN_D02, PIN_D04, PIN_D07, PIN_D08, PIN_D10, PIN_D11, PIN_D12, PIN_D13};
 
 //4 motors, initialized in setup()
-static MotorM* top_left_motor = nullptr;
-static MotorM* top_right_motor = nullptr;
-static MotorM* bottom_left_motor = nullptr;
-static MotorM* bottom_right_motor = nullptr;
+//Disabled, directly controlled by motor controller (7-4-2022)
+// static MotorM* top_left_motor = nullptr;
+// static MotorM* top_right_motor = nullptr;
+// static MotorM* bottom_left_motor = nullptr;
+// static MotorM* bottom_right_motor = nullptr;
 
-//motor driver, initialized in setup()
-static MotorControllerM* motor_controller = nullptr;
+//Motor Controller, initialized in setup()
+static MotorController* Motor_Controller = nullptr;
 
 //TFT LCD, initialized in setup()
 static Adafruit_ILI9341* TFT_LCD = nullptr;
@@ -59,31 +64,31 @@ static CameraClass* Camera_Spresense = nullptr;
 //MAIN PROGRAM
 void setup() {
     //init Spresense
-    LED_init_M();
-    PIN_init_M(IS_USE_MOTOR,PWM_pins);
-    PIN_init_M(IS_USE_MOTOR,DIR_pins);
+    LED_init();
+    PIN_init_motor(IS_USE_MOTOR,PWM_pins,DIR_pins);
 
     //init custom motor controller & program variables
-    motor_controller = new MotorControllerM(TOP_LEFT_AHEAD, TOP_LEFT_BACK, TOP_LEFT_PWM,
+    Motor_Controller = new MotorController( TOP_LEFT_AHEAD, TOP_LEFT_BACK, TOP_LEFT_PWM,
                                             TOP_RIGHT_AHEAD, TOP_RIGHT_BACK, TOP_RIGHT_PWM,
-                                            BOTTOM_LEFT_AHEAD, BOTTOM_LEFT_BACK, BOTTOM_LEFT_PWM,
-                                            BOTTOM_RIGHT_AHEAD, BOTTOM_RIGHT_BACK, BOTTOM_RIGHT_PWM);                                            
-    top_left_motor = motor_controller->get_top_left_motor();
-    top_right_motor = motor_controller->get_top_right_motor();
-    bottom_left_motor = motor_controller->get_bottom_left_motor();
-    bottom_right_motor = motor_controller->get_bottom_right_motor();
+                                            BOT_LEFT_AHEAD, BOT_LEFT_BACK, BOT_LEFT_PWM,
+                                            BOT_RIGHT_AHEAD, BOT_RIGHT_BACK, BOT_RIGHT_PWM);                                            
+    //Disabled (7-4-2022)
+    // top_left_motor = Motor_Controller->get_top_left_motor();
+    // top_right_motor = Motor_Controller->get_top_right_motor();
+    // bottom_left_motor = Motor_Controller->get_bottom_left_motor();
+    // bottom_right_motor = Motor_Controller->get_bottom_right_motor();
 
     //init Serial communication
-    SERIAL_init_M();
+    SERIAL_init();
 
     //init SD card
-    SDcard_init_M(&SDcard);
+    SDcard_init(&SDcard);
 
     //init TFT LCD, also init 4 pins for buttons
-    TFT_LCD = TFTLCD_init_M(!IS_USE_MOTOR);
+    TFT_LCD = TFTLCD_init(!IS_USE_MOTOR);
 
     //init Camera
-    Camera_init_M(&Camera_Spresense);
+    Camera_init(&Camera_Spresense);
 
     //FOR TESTING USE
     init_test();
@@ -102,12 +107,12 @@ void loop() {
     //FOR TESTING USE
     loop_test();
 
-    //blinks LED to show that system is not hanging
+    //blinks LED0 to show that system is not hanging
     LED_toggle_loop();
 }
 
 
-//FUNCTION for easier testing in init() & loop()
+//FUNCTION for easier & clearer testing in init() & loop()
 void init_test(){
     
 }
@@ -120,26 +125,26 @@ void loop_test(){
 
 //make sure system not hanging
 void LED_toggle_loop(){
-    LED_toggle_M(LED0);
+    LED_TOGGLE(LED0);
     delay(100);
 }
 //show that init finished
 void LED_flash_init() {
-    LED_turnON_M(LED0);
+    LED_ON(LED0);
     delay(100);
-    LED_turnON_M(LED1);
+    LED_ON(LED1);
     delay(100);
-    LED_turnON_M(LED2);
+    LED_ON(LED2);
     delay(100);
-    LED_turnON_M(LED3);
+    LED_ON(LED3);
     delay(1000);
 
-    LED_turnOFF_M(LED0);
+    LED_OFF(LED0);
     delay(100);
-    LED_turnOFF_M(LED1);
+    LED_OFF(LED1);
     delay(100);
-    LED_turnOFF_M(LED2);
+    LED_OFF(LED2);
     delay(100);
-    LED_turnOFF_M(LED3);
+    LED_OFF(LED3);
     delay(1000);
 }
