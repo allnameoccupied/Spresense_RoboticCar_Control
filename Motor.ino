@@ -13,6 +13,10 @@ Motor::Motor(uint8_t ahead_pin, uint8_t back_pin, uint8_t pwm_pin,
     this->pwm_pin = pwm_pin;
     this->hall_sensor_1_pin = hall_sensor_1_pin;
     this->hall_sensor_2_pin = hall_sensor_2_pin;
+
+    this->abs_max_speed = 0;
+    this->max_speed = 0;
+    this->PWM_multiplier = 0.0;
 }
 
 void Motor::setDir(bool dir){
