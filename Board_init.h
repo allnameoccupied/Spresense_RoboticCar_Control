@@ -25,7 +25,7 @@ enum Pin_type{
 
 void LED_init();
 void PIN_init_array(const uint8_t pin_array[], const Pin_type pin_type_array[]);
-void PIN_init_motor(const bool is_use_motor, const uint8_t PWM_pin_array[], const uint8_t DIR_pin_array[]);
+void PIN_init_motor(const bool is_use_motor, const uint8_t PWM_pin_array[], const uint8_t DIR_pin_array[], const uint8_t HALL_pin_array[]);
 void SERIAL_init();
 Adafruit_ILI9341* TFTLCD_init(bool is_useTFTLCD);
 void SDcard_init(SDClass* SDcard);

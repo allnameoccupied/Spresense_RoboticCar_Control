@@ -29,13 +29,16 @@ void PIN_init_array(const uint8_t pin_array[], const Pin_type pin_type_array[]){
     delete pin_type_array;
 }
 
-void PIN_init_motor(const bool is_use_motor, const uint8_t PWM_pin_array[], const uint8_t DIR_pin_array[]){
+void PIN_init_motor(const bool is_use_motor, const uint8_t PWM_pin_array[], const uint8_t DIR_pin_array[], const uint8_t HALL_pin_array[]){
     if (!is_use_motor){return;}    
     for (uint8_t i = 0; i < sizeof PWM_pin_array / sizeof PWM_pin_array[0]; i++){
         pinMode(PWM_pin_array[i], OUTPUT);
     }
     for (uint8_t i = 0; i < sizeof DIR_pin_array / sizeof DIR_pin_array[0]; i++){
         pinMode(DIR_pin_array[i], OUTPUT);
+    }
+    for (uint8_t i = 0; i < sizeof HALL_pin_array / sizeof HALL_pin_array[0]; i++){
+        pinMode(HALL_pin_array[i], INPUT_PULLDOWN);
     }
 }
 
